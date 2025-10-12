@@ -66,19 +66,7 @@ export function RichTextEditor() {
   }, []);
 
   const updateActiveFormats = useCallback(() => {
-    const formats: string[] = [];
-    if (document.queryCommandState('bold')) formats.push('bold');
-    if (document.queryCommandState('italic')) formats.push('italic');
-    if (document.queryCommandState('underline')) formats.push('underline');
-    if (document.queryCommandState('strikeThrough')) formats.push('strikethrough');
-    if (document.queryCommandState('insertUnorderedList')) formats.push('insertUnorderedList');
-    if (document.queryCommandState('insertOrderedList')) formats.push('insertOrderedList');
-    
-    if (document.queryCommandState('justifyLeft')) formats.push('justifyLeft');
-    else if (document.queryCommandState('justifyCenter')) formats.push('justifyCenter');
-    else if (document.queryCommandState('justifyRight')) formats.push('justifyRight');
-
-    setActiveFormats(formats);
+    // This function is now empty to prevent automatic toggling.
   }, []);
 
 
@@ -104,14 +92,30 @@ export function RichTextEditor() {
     document.execCommand(command, false, value);
     editorRef.current?.focus();
     handleContentChange();
-    updateActiveFormats();
+    
+    // Manually toggle active formats on click
+    setActiveFormats(prev => {
+        const newFormats = new Set(prev);
+        if (newFormats.has(command)) {
+            newFormats.delete(command);
+        } else {
+            // Handle mutually exclusive alignment
+            if (['justifyLeft', 'justifyCenter', 'justifyRight'].includes(command)) {
+                newFormats.delete('justifyLeft');
+                newFormats.delete('justifyCenter');
+                newFormats.delete('justifyRight');
+            }
+            newFormats.add(command);
+        }
+        return Array.from(newFormats);
+    });
   };
   
   const clearFormatting = () => {
     document.execCommand('removeFormat', false);
     document.execCommand('justifyLeft', false);
     handleContentChange();
-    updateActiveFormats();
+    setActiveFormats([]);
   };
 
   if (!isMounted) {
@@ -126,7 +130,10 @@ export function RichTextEditor() {
     <Button
       variant="ghost"
       size="icon"
-      onClick={() => handleFormat(command)}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        handleFormat(command);
+      }}
       className={cn("h-8 w-8", activeFormats.includes(command) ? 'bg-accent text-accent-foreground' : '')}
       aria-label={command}
     >
@@ -141,7 +148,7 @@ export function RichTextEditor() {
         <div className="flex items-center gap-1">
           <ToolbarButton command="undo" icon={Undo} />
           <ToolbarButton command="redo" icon={Redo} />
-          <Button variant="ghost" size="icon" onClick={clearFormatting} aria-label="Clear formatting" className="h-8 w-8">
+          <Button variant="ghost" size="icon" onMouseDown={(e) => {e.preventDefault(); clearFormatting()}} aria-label="Clear formatting" className="h-8 w-8">
             <Eraser className="h-4 w-4 text-foreground" />
           </Button>
         </div>
