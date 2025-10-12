@@ -116,14 +116,14 @@ export function RichTextEditor() {
 
   if (!isMounted) {
     return (
-      <Card className="shadow-2xl border-border/50">
+      <Card className="shadow-2xl">
         <div className="h-96" />
       </Card>
     );
   }
 
   return (
-    <Card className="shadow-2xl border-border/50 w-full">
+    <Card className="shadow-2xl border-primary w-full">
        <div className="p-2 border-b border-border/50 bg-card rounded-t-md flex items-center gap-1 flex-wrap">
         <ToggleGroup type="multiple">
           <Button variant="ghost" size="icon" onClick={() => handleFormat('undo')} aria-label="Undo" className="h-8 w-8">
