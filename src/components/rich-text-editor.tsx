@@ -124,7 +124,7 @@ export function RichTextEditor() {
 
   return (
     <Card className="shadow-2xl border-primary w-full">
-       <div className="p-2 border-b border-border/50 bg-card rounded-t-md flex items-center gap-1 flex-wrap">
+       <div className="p-2 border-b border-border bg-card rounded-t-md flex items-center gap-1 flex-wrap">
         <ToggleGroup type="multiple">
           <Button variant="ghost" size="icon" onClick={() => handleFormat('undo')} aria-label="Undo" className="h-8 w-8">
             <Undo className="h-4 w-4" />
@@ -183,7 +183,7 @@ export function RichTextEditor() {
             suppressContentEditableWarning
         />
       </CardContent>
-      <div className="p-2 border-t border-border/50 text-sm text-muted-foreground">
+      <div className="p-2 border-t border-border text-sm text-muted-foreground">
         {wordCount} Words
       </div>
     </Card>
