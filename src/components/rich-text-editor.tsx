@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -118,15 +119,27 @@ export function RichTextEditor() {
     setActiveFormats([]);
   };
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (editorRef.current) {
-      const textToCopy = editorRef.current.innerText;
-      navigator.clipboard.writeText(textToCopy).then(() => {
+      try {
+        const htmlContent = editorRef.current.innerHTML;
+        const textContent = editorRef.current.innerText;
+        
+        const blobHtml = new Blob([htmlContent], { type: 'text/html' });
+        const blobText = new Blob([textContent], { type: 'text/plain' });
+        
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/html': blobHtml,
+            'text/plain': blobText,
+          })
+        ]);
+        
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
-      }).catch(err => {
-        console.error('Failed to copy text: ', err);
-      });
+      } catch (err) {
+        console.error('Failed to copy content: ', err);
+      }
     }
   };
 
