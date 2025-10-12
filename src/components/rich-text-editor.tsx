@@ -15,7 +15,6 @@ import {
   AlignRight,
   Strikethrough,
 } from 'lucide-react';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Separator } from '@/components/ui/separator';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
@@ -138,7 +137,7 @@ export function RichTextEditor() {
 
   return (
     <Card className="shadow-2xl border-primary w-full">
-       <div className="p-2 border-b border-border bg-card rounded-t-md flex items-center gap-1 flex-wrap">
+       <div className="p-2 border-b border-border bg-card rounded-t-md flex items-center gap-1 flex-wrap dark:border-border/30">
         <div className="flex items-center gap-1">
           <ToolbarButton command="undo" icon={Undo} />
           <ToolbarButton command="redo" icon={Redo} />
@@ -175,7 +174,7 @@ export function RichTextEditor() {
             suppressContentEditableWarning
         />
       </CardContent>
-      <div className="p-2 border-t border-border text-sm text-muted-foreground">
+      <div className="p-2 border-t border-border text-sm text-muted-foreground dark:border-border/30">
         {wordCount} Words
       </div>
     </Card>
