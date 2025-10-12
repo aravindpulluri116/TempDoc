@@ -14,6 +14,8 @@ import {
   AlignCenter,
   AlignRight,
   Strikethrough,
+  Clipboard,
+  Check,
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from './ui/button';
@@ -26,6 +28,7 @@ export function RichTextEditor() {
   const [content, setContent] = useState('');
   const [wordCount, setWordCount] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const [activeFormats, setActiveFormats] = useState<string[]>([]);
   
@@ -66,7 +69,17 @@ export function RichTextEditor() {
   }, []);
 
   const updateActiveFormats = useCallback(() => {
-    // This function is now empty to prevent automatic toggling.
+    const checkCommand = (command: string) => {
+        try {
+            return document.queryCommandState(command);
+        } catch (e) {
+            return false;
+        }
+    };
+    
+    const formats = ['bold', 'italic', 'underline', 'strikeThrough', 'insertUnorderedList', 'insertOrderedList', 'justifyLeft', 'justifyCenter', 'justifyRight'];
+    const active = formats.filter(checkCommand);
+    setActiveFormats(active);
   }, []);
 
 
@@ -91,26 +104,11 @@ export function RichTextEditor() {
   const handleFormat = (command: string, value?: string) => {
     document.execCommand(command, false, value);
     editorRef.current?.focus();
-    handleContentChange();
-    
-    // Check the state of the command after executing it.
-    const isNowActive = document.queryCommandState(command);
-
-    setActiveFormats(prev => {
-        const newFormats = new Set(prev);
-        // Handle mutually exclusive alignment
-        const alignments = ['justifyLeft', 'justifyCenter', 'justifyRight'];
-        if (alignments.includes(command)) {
-            alignments.forEach(align => newFormats.delete(align));
-        }
-
-        if (isNowActive) {
-            newFormats.add(command);
-        } else {
-            newFormats.delete(command);
-        }
-        return Array.from(newFormats);
-    });
+    // Use a timeout to allow the DOM to update before checking the command state
+    setTimeout(() => {
+        updateActiveFormats();
+        handleContentChange();
+    }, 0);
   };
   
   const clearFormatting = () => {
@@ -118,6 +116,18 @@ export function RichTextEditor() {
     document.execCommand('justifyLeft', false);
     handleContentChange();
     setActiveFormats([]);
+  };
+
+  const handleCopy = () => {
+    if (editorRef.current) {
+      const textToCopy = editorRef.current.innerText;
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
+    }
   };
 
   if (!isMounted) {
@@ -154,19 +164,19 @@ export function RichTextEditor() {
             <Eraser className="h-4 w-4 text-foreground" />
           </Button>
         </div>
-        <Separator orientation="vertical" className="h-6 mx-1 dark:bg-border" />
+        <Separator orientation="vertical" className="h-6 mx-1 bg-border" />
         <div className="flex items-center gap-1">
           <ToolbarButton command="bold" icon={Bold} />
           <ToolbarButton command="italic" icon={Italic} />
           <ToolbarButton command="underline" icon={Underline} />
           <ToolbarButton command="strikeThrough" icon={Strikethrough} />
         </div>
-        <Separator orientation="vertical" className="h-6 mx-1 dark:bg-border" />
+        <Separator orientation="vertical" className="h-6 mx-1 bg-border" />
         <div className="flex items-center gap-1">
           <ToolbarButton command="insertUnorderedList" icon={List} />
           <ToolbarButton command="insertOrderedList" icon={ListOrdered} />
         </div>
-        <Separator orientation="vertical" className="h-6 mx-1 dark:bg-border" />
+        <Separator orientation="vertical" className="h-6 mx-1 bg-border" />
         <div className="flex items-center gap-1">
           <ToolbarButton command="justifyLeft" icon={AlignLeft} />
           <ToolbarButton command="justifyCenter" icon={AlignCenter} />
@@ -183,8 +193,12 @@ export function RichTextEditor() {
             suppressContentEditableWarning
         />
       </CardContent>
-      <div className="p-2 border-t border-accent text-sm text-muted-foreground">
-        {wordCount} Words
+      <div className="flex items-center justify-between p-2 border-t border-accent text-sm text-muted-foreground">
+        <span>{wordCount} Words</span>
+        <Button variant="ghost" size="sm" onClick={handleCopy} disabled={isCopied}>
+          {isCopied ? <Check className="mr-2 h-4 w-4" /> : <Clipboard className="mr-2 h-4 w-4" />}
+          {isCopied ? 'Copied!' : 'Copy'}
+        </Button>
       </div>
     </Card>
   );
