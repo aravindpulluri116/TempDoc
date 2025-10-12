@@ -95,21 +95,18 @@ export function RichTextEditor() {
   };
 
   return (
-    <div className="flex flex-col min-h-[500px] bg-card text-card-foreground transition-colors duration-300 rounded-lg border shadow-sm">
-      <header className="flex justify-end items-center p-2 border-b">
+    <div className="flex flex-col min-h-[500px] bg-card text-card-foreground transition-colors duration-300 rounded-lg border shadow-xl">
+      <header className="flex justify-between items-center p-2 border-b">
+        <Toolbar onFormat={handleFormat} isApplied={isApplied} onClearFormat={clearFormatting} />
         <ThemeToggle />
       </header>
       
-      <div className="p-4">
-        <Toolbar onFormat={handleFormat} isApplied={isApplied} onClearFormat={clearFormatting} />
-      </div>
-
-      <main className="flex-grow flex flex-col px-4 pb-4">
+      <main className="flex-grow flex flex-col p-4">
         <div
           ref={editorRef}
           contentEditable
           onInput={handleContentChange}
-          className="w-full h-full flex-grow text-base md:text-lg bg-background border rounded-md p-4 resize-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 leading-relaxed outline-none prose dark:prose-invert max-w-none"
+          className="w-full h-full flex-grow text-base md:text-lg bg-transparent focus:outline-none leading-relaxed prose dark:prose-invert max-w-none"
           aria-label="Notepad"
           suppressContentEditableWarning
           style={{minHeight: '250px'}}
@@ -129,7 +126,7 @@ const Toolbar = ({
   onClearFormat: () => void;
 }) => {
   return (
-    <div className="flex items-center gap-1 bg-muted p-1 rounded-md flex-wrap">
+    <div className="flex items-center gap-1 flex-wrap">
       <ToggleGroup type="multiple">
         <Button variant="ghost" size="icon" onClick={() => onFormat('undo')} aria-label="Undo">
           <Undo className="h-4 w-4" />
