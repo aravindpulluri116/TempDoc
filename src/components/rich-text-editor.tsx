@@ -130,7 +130,7 @@ export function RichTextEditor() {
       className={cn("h-8 w-8", activeFormats.includes(command) ? 'bg-accent text-accent-foreground' : '')}
       aria-label={command}
     >
-      {Icon && <Icon className="h-4 w-4" />}
+      {Icon && <Icon className="h-4 w-4 text-foreground" />}
       {children}
     </Button>
   );
@@ -142,22 +142,22 @@ export function RichTextEditor() {
           <ToolbarButton command="undo" icon={Undo} />
           <ToolbarButton command="redo" icon={Redo} />
           <Button variant="ghost" size="icon" onClick={clearFormatting} aria-label="Clear formatting" className="h-8 w-8">
-            <Eraser className="h-4 w-4" />
+            <Eraser className="h-4 w-4 text-foreground" />
           </Button>
         </div>
-        <Separator orientation="vertical" className="h-6 mx-1" />
+        <Separator orientation="vertical" className="h-6 mx-1 dark:bg-border/30" />
         <div className="flex items-center gap-1">
           <ToolbarButton command="bold" icon={Bold} />
           <ToolbarButton command="italic" icon={Italic} />
           <ToolbarButton command="underline" icon={Underline} />
           <ToolbarButton command="strikeThrough" icon={Strikethrough} />
         </div>
-        <Separator orientation="vertical" className="h-6 mx-1" />
+        <Separator orientation="vertical" className="h-6 mx-1 dark:bg-border/30" />
         <div className="flex items-center gap-1">
           <ToolbarButton command="insertUnorderedList" icon={List} />
           <ToolbarButton command="insertOrderedList" icon={ListOrdered} />
         </div>
-        <Separator orientation="vertical" className="h-6 mx-1" />
+        <Separator orientation="vertical" className="h-6 mx-1 dark:bg-border/30" />
         <div className="flex items-center gap-1">
           <ToolbarButton command="justifyLeft" icon={AlignLeft} />
           <ToolbarButton command="justifyCenter" icon={AlignCenter} />
