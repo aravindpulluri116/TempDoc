@@ -1,5 +1,5 @@
-import { Notepad } from '@/components/notepad';
+import { RichTextEditor } from '@/components/rich-text-editor';
 
 export default function Home() {
-  return <Notepad />;
+  return <RichTextEditor />;
 }
