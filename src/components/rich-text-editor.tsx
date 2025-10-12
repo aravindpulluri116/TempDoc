@@ -174,7 +174,7 @@ export function RichTextEditor() {
             suppressContentEditableWarning
         />
       </CardContent>
-      <div className="p-2 border-t border-border dark:border-border text-sm text-muted-foreground">
+      <div className="p-2 border-t border-accent text-sm text-muted-foreground">
         {wordCount} Words
       </div>
     </Card>
