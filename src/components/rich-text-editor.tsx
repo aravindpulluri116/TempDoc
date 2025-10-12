@@ -137,7 +137,7 @@ export function RichTextEditor() {
 
   return (
     <Card className="shadow-2xl border-primary w-full">
-       <div className="p-2 border-b border-border bg-card rounded-t-md flex items-center gap-1 flex-wrap dark:border-border/30">
+       <div className="p-2 border-b border-border bg-card rounded-t-md flex items-center gap-1 flex-wrap dark:border-border">
         <div className="flex items-center gap-1">
           <ToolbarButton command="undo" icon={Undo} />
           <ToolbarButton command="redo" icon={Redo} />
@@ -145,19 +145,19 @@ export function RichTextEditor() {
             <Eraser className="h-4 w-4 text-foreground" />
           </Button>
         </div>
-        <Separator orientation="vertical" className="h-6 mx-1 dark:bg-border/30" />
+        <Separator orientation="vertical" className="h-6 mx-1 dark:bg-border" />
         <div className="flex items-center gap-1">
           <ToolbarButton command="bold" icon={Bold} />
           <ToolbarButton command="italic" icon={Italic} />
           <ToolbarButton command="underline" icon={Underline} />
           <ToolbarButton command="strikeThrough" icon={Strikethrough} />
         </div>
-        <Separator orientation="vertical" className="h-6 mx-1 dark:bg-border/30" />
+        <Separator orientation="vertical" className="h-6 mx-1 dark:bg-border" />
         <div className="flex items-center gap-1">
           <ToolbarButton command="insertUnorderedList" icon={List} />
           <ToolbarButton command="insertOrderedList" icon={ListOrdered} />
         </div>
-        <Separator orientation="vertical" className="h-6 mx-1 dark:bg-border/30" />
+        <Separator orientation="vertical" className="h-6 mx-1 dark:bg-border" />
         <div className="flex items-center gap-1">
           <ToolbarButton command="justifyLeft" icon={AlignLeft} />
           <ToolbarButton command="justifyCenter" icon={AlignCenter} />
@@ -174,7 +174,7 @@ export function RichTextEditor() {
             suppressContentEditableWarning
         />
       </CardContent>
-      <div className="p-2 border-t border-border text-sm text-muted-foreground dark:border-border/30">
+      <div className="p-2 border-t border-border text-sm text-muted-foreground dark:border-border">
         {wordCount} Words
       </div>
     </Card>
