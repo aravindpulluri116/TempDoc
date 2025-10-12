@@ -93,19 +93,21 @@ export function RichTextEditor() {
     editorRef.current?.focus();
     handleContentChange();
     
-    // Manually toggle active formats on click
+    // Check the state of the command after executing it.
+    const isNowActive = document.queryCommandState(command);
+
     setActiveFormats(prev => {
         const newFormats = new Set(prev);
-        if (newFormats.has(command)) {
-            newFormats.delete(command);
-        } else {
-            // Handle mutually exclusive alignment
-            if (['justifyLeft', 'justifyCenter', 'justifyRight'].includes(command)) {
-                newFormats.delete('justifyLeft');
-                newFormats.delete('justifyCenter');
-                newFormats.delete('justifyRight');
-            }
+        // Handle mutually exclusive alignment
+        const alignments = ['justifyLeft', 'justifyCenter', 'justifyRight'];
+        if (alignments.includes(command)) {
+            alignments.forEach(align => newFormats.delete(align));
+        }
+
+        if (isNowActive) {
             newFormats.add(command);
+        } else {
+            newFormats.delete(command);
         }
         return Array.from(newFormats);
     });
