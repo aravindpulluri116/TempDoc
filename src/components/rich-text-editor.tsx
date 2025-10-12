@@ -19,6 +19,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Separator } from '@/components/ui/separator';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
+import { cn } from '@/lib/utils';
 
 const LOCAL_STORAGE_KEY = 'tempnote-content-v2';
 
@@ -74,9 +75,9 @@ export function RichTextEditor() {
     if (document.queryCommandState('insertUnorderedList')) formats.push('insertUnorderedList');
     if (document.queryCommandState('insertOrderedList')) formats.push('insertOrderedList');
     
-    if(document.queryCommandValue('justify') === 'left') formats.push('justifyLeft');
-    if(document.queryCommandValue('justify') === 'center') formats.push('justifyCenter');
-    if(document.queryCommandValue('justify') === 'right') formats.push('justifyRight');
+    if (document.queryCommandState('justifyLeft')) formats.push('justifyLeft');
+    else if (document.queryCommandState('justifyCenter')) formats.push('justifyCenter');
+    else if (document.queryCommandState('justifyRight')) formats.push('justifyRight');
 
     setActiveFormats(formats);
   }, []);
@@ -121,57 +122,48 @@ export function RichTextEditor() {
       </Card>
     );
   }
+  
+  const ToolbarButton = ({ command, icon: Icon, children }: { command: string; icon?: React.ElementType, children?: React.ReactNode }) => (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => handleFormat(command)}
+      className={cn("h-8 w-8", activeFormats.includes(command) ? 'bg-accent text-accent-foreground' : '')}
+      aria-label={command}
+    >
+      {Icon && <Icon className="h-4 w-4" />}
+      {children}
+    </Button>
+  );
 
   return (
     <Card className="shadow-2xl border-primary w-full">
        <div className="p-2 border-b border-border bg-card rounded-t-md flex items-center gap-1 flex-wrap">
-        <ToggleGroup type="multiple">
-          <Button variant="ghost" size="icon" onClick={() => handleFormat('undo')} aria-label="Undo" className="h-8 w-8">
-            <Undo className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => handleFormat('redo')} aria-label="Redo" className="h-8 w-8">
-            <Redo className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center gap-1">
+          <ToolbarButton command="undo" icon={Undo} />
+          <ToolbarButton command="redo" icon={Redo} />
           <Button variant="ghost" size="icon" onClick={clearFormatting} aria-label="Clear formatting" className="h-8 w-8">
             <Eraser className="h-4 w-4" />
           </Button>
-        </ToggleGroup>
+        </div>
         <Separator orientation="vertical" className="h-6 mx-1" />
-        <ToggleGroup type="multiple" value={activeFormats}>
-          <ToggleGroupItem value="bold" aria-label="Toggle bold" onClick={() => handleFormat('bold')} className="h-8 w-8">
-            <Bold className="h-4 w-4" />
-          </ToggleGroupItem>
-          <ToggleGroupItem value="italic" aria-label="Toggle italic" onClick={() => handleFormat('italic')} className="h-8 w-8">
-            <Italic className="h-4 w-4" />
-          </ToggleGroupItem>
-          <ToggleGroupItem value="underline" aria-label="Toggle underline" onClick={() => handleFormat('underline')} className="h-8 w-8">
-            <Underline className="h-4 w-4" />
-          </ToggleGroupItem>
-          <ToggleGroupItem value="strikethrough" aria-label="Toggle strikethrough" onClick={() => handleFormat('strikeThrough')} className="h-8 w-8">
-            <Strikethrough className="h-4 w-4" />
-          </ToggleGroupItem>
-        </ToggleGroup>
+        <div className="flex items-center gap-1">
+          <ToolbarButton command="bold" icon={Bold} />
+          <ToolbarButton command="italic" icon={Italic} />
+          <ToolbarButton command="underline" icon={Underline} />
+          <ToolbarButton command="strikeThrough" icon={Strikethrough} />
+        </div>
         <Separator orientation="vertical" className="h-6 mx-1" />
-        <ToggleGroup type="multiple" value={activeFormats}>
-          <ToggleGroupItem value="insertUnorderedList" aria-label="Toggle bullet list" onClick={() => handleFormat('insertUnorderedList')} className="h-8 w-8">
-            <List className="h-4 w-4" />
-          </ToggleGroupItem>
-          <ToggleGroupItem value="insertOrderedList" aria-label="Toggle ordered list" onClick={() => handleFormat('insertOrderedList')} className="h-8 w-8">
-            <ListOrdered className="h-4 w-4" />
-          </ToggleGroupItem>
-        </ToggleGroup>
+        <div className="flex items-center gap-1">
+          <ToolbarButton command="insertUnorderedList" icon={List} />
+          <ToolbarButton command="insertOrderedList" icon={ListOrdered} />
+        </div>
         <Separator orientation="vertical" className="h-6 mx-1" />
-        <ToggleGroup type="single" value={activeFormats.find(f => f.startsWith('justify')) || 'justifyLeft'}>
-          <ToggleGroupItem value="justifyLeft" aria-label="Align left" onClick={() => handleFormat('justifyLeft')} className="h-8 w-8">
-            <AlignLeft className="h-4 w-4" />
-          </ToggleGroupItem>
-          <ToggleGroupItem value="justifyCenter" aria-label="Align center" onClick={() => handleFormat('justifyCenter')} className="h-8 w-8">
-            <AlignCenter className="h-4 w-4" />
-          </ToggleGroupItem>
-          <ToggleGroupItem value="justifyRight" aria-label="Align right" onClick={() => handleFormat('justifyRight')} className="h-8 w-8">
-            <AlignRight className="h-4 w-4" />
-          </ToggleGroupItem>
-        </ToggleGroup>
+        <div className="flex items-center gap-1">
+          <ToolbarButton command="justifyLeft" icon={AlignLeft} />
+          <ToolbarButton command="justifyCenter" icon={AlignCenter} />
+          <ToolbarButton command="justifyRight" icon={AlignRight} />
+        </div>
       </div>
       <CardContent className="p-0">
         <div
