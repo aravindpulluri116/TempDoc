@@ -11,7 +11,9 @@ export default function Home() {
         </div>
       </header>
       <main className="flex-grow container mx-auto px-4 sm:px-6 py-8">
-        <RichTextEditor />
+        <div className="max-w-4xl mx-auto">
+          <RichTextEditor />
+        </div>
       </main>
     </div>
   );
