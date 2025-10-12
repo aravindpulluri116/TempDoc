@@ -39,28 +39,15 @@ export function Notepad() {
     }, 500);
 
     // --- AI Word Count ---
-    setIsCounting(true);
-    const wordCountHandler = setTimeout(async () => {
-      if (text.trim() === '') {
-        setWordCount(0);
-        setIsCounting(false);
-        return;
-      }
-      try {
-        const result = await realTimeWordCount({ text });
-        setWordCount(result.wordCount);
-      } catch (error) {
-        console.error('Failed to get word count via AI, falling back to client-side.', error);
-        setWordCount(text.trim().split(/\s+/).length);
-      } finally {
-        setIsCounting(false);
-      }
-    }, 1000);
+    const wordCountHandler = setTimeout(() => {
+      // Use simple client-side word count for better performance.
+      const words = text.trim() ? text.trim().split(/\s+/) : [];
+      setWordCount(words.length);
+    }, 500);
 
     return () => {
       clearTimeout(saveHandler);
       clearTimeout(wordCountHandler);
-      setIsCounting(false); // Reset on new input before timeout
     };
   }, [text, isMounted]);
 
@@ -84,8 +71,8 @@ export function Notepad() {
         <Textarea
           value={text}
           onChange={handleTextChange}
-          placeholder="Start writing..."
-          className="w-full h-full flex-grow p-0 text-base md:text-lg bg-transparent border-none resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          placeholder="Start typing..."
+          className="w-full h-full flex-grow p-0 text-base md:text-lg bg-transparent border-none resize-none focus-visible:ring-0 focus-visible:ring-offset-0 leading-relaxed"
           aria-label="Notepad"
         />
       </main>
