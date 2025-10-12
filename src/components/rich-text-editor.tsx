@@ -19,7 +19,6 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Separator } from '@/components/ui/separator';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
-import { useSelection } from '@/hooks/use-selection';
 
 const LOCAL_STORAGE_KEY = 'tempnote-content-v2';
 
@@ -30,8 +29,6 @@ export function RichTextEditor() {
   const editorRef = useRef<HTMLDivElement>(null);
   const [activeFormats, setActiveFormats] = useState<string[]>([]);
   
-  const { selectionRect, hasSelection } = useSelection(editorRef);
-
   useEffect(() => {
     setIsMounted(true);
     try {
@@ -125,75 +122,57 @@ export function RichTextEditor() {
     );
   }
 
-  const toolbarStyle: React.CSSProperties = selectionRect ? {
-    position: 'absolute',
-    top: `${selectionRect.top - 50 + window.scrollY}px`,
-    left: `${selectionRect.left + (selectionRect.width / 2) + window.scrollX}px`,
-    transform: 'translateX(-50%)',
-    zIndex: 10,
-    transition: 'opacity 0.1s, top 0.1s'
-  } : {
-    position: 'absolute',
-    opacity: 0,
-    pointerEvents: 'none'
-  };
-
-
   return (
-    <Card className="shadow-2xl border-border/50 w-full relative">
-      {hasSelection && (
-        <div style={toolbarStyle}>
-            <div className="p-1 border border-border/50 bg-card rounded-md shadow-lg flex items-center gap-1 flex-wrap">
-                <ToggleGroup type="multiple">
-                    <Button variant="ghost" size="icon" onClick={() => handleFormat('undo')} aria-label="Undo" className="h-8 w-8">
-                    <Undo className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleFormat('redo')} aria-label="Redo" className="h-8 w-8">
-                    <Redo className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={clearFormatting} aria-label="Clear formatting" className="h-8 w-8">
-                    <Eraser className="h-4 w-4" />
-                    </Button>
-                </ToggleGroup>
-                <Separator orientation="vertical" className="h-6 mx-1" />
-                <ToggleGroup type="multiple" value={activeFormats}>
-                    <ToggleGroupItem value="bold" aria-label="Toggle bold" onClick={() => handleFormat('bold')} className="h-8 w-8">
-                    <Bold className="h-4 w-4" />
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="italic" aria-label="Toggle italic" onClick={() => handleFormat('italic')} className="h-8 w-8">
-                    <Italic className="h-4 w-4" />
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="underline" aria-label="Toggle underline" onClick={() => handleFormat('underline')} className="h-8 w-8">
-                    <Underline className="h-4 w-4" />
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="strikethrough" aria-label="Toggle strikethrough" onClick={() => handleFormat('strikeThrough')} className="h-8 w-8">
-                    <Strikethrough className="h-4 w-4" />
-                    </ToggleGroupItem>
-                </ToggleGroup>
-                <Separator orientation="vertical" className="h-6 mx-1" />
-                <ToggleGroup type="multiple" value={activeFormats}>
-                    <ToggleGroupItem value="insertUnorderedList" aria-label="Toggle bullet list" onClick={() => handleFormat('insertUnorderedList')} className="h-8 w-8">
-                    <List className="h-4 w-4" />
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="insertOrderedList" aria-label="Toggle ordered list" onClick={() => handleFormat('insertOrderedList')} className="h-8 w-8">
-                    <ListOrdered className="h-4 w-4" />
-                    </ToggleGroupItem>
-                </ToggleGroup>
-                <Separator orientation="vertical" className="h-6 mx-1" />
-                <ToggleGroup type="single" value={activeFormats.find(f => f.startsWith('justify')) || 'justifyLeft'}>
-                    <ToggleGroupItem value="justifyLeft" aria-label="Align left" onClick={() => handleFormat('justifyLeft')} className="h-8 w-8">
-                    <AlignLeft className="h-4 w-4" />
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="justifyCenter" aria-label="Align center" onClick={() => handleFormat('justifyCenter')} className="h-8 w-8">
-                    <AlignCenter className="h-4 w-4" />
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="justifyRight" aria-label="Align right" onClick={() => handleFormat('justifyRight')} className="h-8 w-8">
-                    <AlignRight className="h-4 w-4" />
-                    </ToggleGroupItem>
-                </ToggleGroup>
-            </div>
-        </div>
-      )}
+    <Card className="shadow-2xl border-border/50 w-full">
+       <div className="p-2 border-b border-border/50 bg-card rounded-t-md flex items-center gap-1 flex-wrap">
+        <ToggleGroup type="multiple">
+          <Button variant="ghost" size="icon" onClick={() => handleFormat('undo')} aria-label="Undo" className="h-8 w-8">
+            <Undo className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => handleFormat('redo')} aria-label="Redo" className="h-8 w-8">
+            <Redo className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={clearFormatting} aria-label="Clear formatting" className="h-8 w-8">
+            <Eraser className="h-4 w-4" />
+          </Button>
+        </ToggleGroup>
+        <Separator orientation="vertical" className="h-6 mx-1" />
+        <ToggleGroup type="multiple" value={activeFormats}>
+          <ToggleGroupItem value="bold" aria-label="Toggle bold" onClick={() => handleFormat('bold')} className="h-8 w-8">
+            <Bold className="h-4 w-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="italic" aria-label="Toggle italic" onClick={() => handleFormat('italic')} className="h-8 w-8">
+            <Italic className="h-4 w-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="underline" aria-label="Toggle underline" onClick={() => handleFormat('underline')} className="h-8 w-8">
+            <Underline className="h-4 w-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="strikethrough" aria-label="Toggle strikethrough" onClick={() => handleFormat('strikeThrough')} className="h-8 w-8">
+            <Strikethrough className="h-4 w-4" />
+          </ToggleGroupItem>
+        </ToggleGroup>
+        <Separator orientation="vertical" className="h-6 mx-1" />
+        <ToggleGroup type="multiple" value={activeFormats}>
+          <ToggleGroupItem value="insertUnorderedList" aria-label="Toggle bullet list" onClick={() => handleFormat('insertUnorderedList')} className="h-8 w-8">
+            <List className="h-4 w-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="insertOrderedList" aria-label="Toggle ordered list" onClick={() => handleFormat('insertOrderedList')} className="h-8 w-8">
+            <ListOrdered className="h-4 w-4" />
+          </ToggleGroupItem>
+        </ToggleGroup>
+        <Separator orientation="vertical" className="h-6 mx-1" />
+        <ToggleGroup type="single" value={activeFormats.find(f => f.startsWith('justify')) || 'justifyLeft'}>
+          <ToggleGroupItem value="justifyLeft" aria-label="Align left" onClick={() => handleFormat('justifyLeft')} className="h-8 w-8">
+            <AlignLeft className="h-4 w-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="justifyCenter" aria-label="Align center" onClick={() => handleFormat('justifyCenter')} className="h-8 w-8">
+            <AlignCenter className="h-4 w-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="justifyRight" aria-label="Align right" onClick={() => handleFormat('justifyRight')} className="h-8 w-8">
+            <AlignRight className="h-4 w-4" />
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </div>
       <CardContent className="p-0">
         <div
             ref={editorRef}
