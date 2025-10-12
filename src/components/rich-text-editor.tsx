@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useTheme } from '@/components/theme-provider';
 import { ThemeToggle } from '@/components/theme-toggle';
 import {
   Bold,
@@ -19,15 +18,12 @@ import {
 } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Separator } from '@/components/ui/separator';
-import { useSelection } from '@/hooks/use-selection';
-import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 
 const LOCAL_STORAGE_KEY = 'tempnote-content-v2';
 
 export function RichTextEditor() {
   const [content, setContent] = useState('');
-  const [wordCount, setWordCount] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +37,7 @@ export function RichTextEditor() {
           editorRef.current.innerHTML = savedNote;
         }
       } else {
-        const initialContent = '<p>Write Your Post</p>';
+        const initialContent = '<p>Start writing...</p>';
         setContent(initialContent);
         if (editorRef.current) {
           editorRef.current.innerHTML = initialContent;
@@ -51,18 +47,11 @@ export function RichTextEditor() {
       console.error('Failed to load note from localStorage', error);
     }
   }, []);
-
-  const calculateWordCount = (node: Node | null) => {
-    const textContent = node?.textContent || '';
-    const words = textContent.trim().split(/\s+/).filter(Boolean);
-    return words.length;
-  };
   
   const handleContentChange = useCallback(() => {
     if (editorRef.current) {
       const newContent = editorRef.current.innerHTML;
       setContent(newContent);
-      setWordCount(calculateWordCount(editorRef.current));
       
       try {
         localStorage.setItem(LOCAL_STORAGE_KEY, newContent);
@@ -71,12 +60,6 @@ export function RichTextEditor() {
       }
     }
   }, []);
-
-  useEffect(() => {
-    if (editorRef.current) {
-      setWordCount(calculateWordCount(editorRef.current));
-    }
-  }, [content]);
 
   const handleFormat = (command: string, value?: string) => {
     document.execCommand(command, false, value);
@@ -106,15 +89,14 @@ export function RichTextEditor() {
   
   const clearFormatting = () => {
     document.execCommand('removeFormat', false);
+    // Also remove alignment by setting it to left
+    document.execCommand('justifyLeft', false);
     handleContentChange();
   };
 
   return (
     <div className="flex flex-col min-h-[500px] bg-card text-card-foreground transition-colors duration-300 rounded-lg border shadow-sm">
-      <header className="flex justify-between items-center p-4 border-b">
-        <h1 className="text-lg font-semibold text-foreground/80 tracking-tight">
-          FREE LINKEDIN TEXT POST FORMAT EDITOR
-        </h1>
+      <header className="flex justify-end items-center p-2 border-b">
         <ThemeToggle />
       </header>
       
@@ -147,25 +129,24 @@ const Toolbar = ({
   onClearFormat: () => void;
 }) => {
   return (
-    <div className="flex items-center gap-1 bg-muted p-1 rounded-md">
+    <div className="flex items-center gap-1 bg-muted p-1 rounded-md flex-wrap">
       <ToggleGroup type="multiple">
-        <Button variant="ghost" size="icon" onClick={() => onFormat('undo')}>
+        <Button variant="ghost" size="icon" onClick={() => onFormat('undo')} aria-label="Undo">
           <Undo className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" onClick={() => onFormat('redo')}>
+        <Button variant="ghost" size="icon" onClick={() => onFormat('redo')} aria-label="Redo">
           <Redo className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" onClick={onClearFormat}>
+        <Button variant="ghost" size="icon" onClick={onClearFormat} aria-label="Clear formatting">
           <Eraser className="h-4 w-4" />
         </Button>
       </ToggleGroup>
       <Separator orientation="vertical" className="h-6 mx-1" />
-      <ToggleGroup type="multiple">
+      <ToggleGroup type="multiple" value={['bold', 'italic', 'underline', 'strikethrough'].filter(cmd => isApplied(cmd === 'strikethrough' ? 'strikeThrough' : cmd))}>
         <ToggleGroupItem
           value="bold"
           aria-label="Toggle bold"
           onClick={() => onFormat('bold')}
-          data-state={isApplied('bold') ? 'on' : 'off'}
         >
           <Bold className="h-4 w-4" />
         </ToggleGroupItem>
@@ -173,7 +154,6 @@ const Toolbar = ({
           value="italic"
           aria-label="Toggle italic"
           onClick={() => onFormat('italic')}
-          data-state={isApplied('italic') ? 'on' : 'off'}
         >
           <Italic className="h-4 w-4" />
         </ToggleGroupItem>
@@ -181,7 +161,6 @@ const Toolbar = ({
           value="underline"
           aria-label="Toggle underline"
           onClick={() => onFormat('underline')}
-          data-state={isApplied('underline') ? 'on' : 'off'}
         >
           <Underline className="h-4 w-4" />
         </ToggleGroupItem>
@@ -189,18 +168,16 @@ const Toolbar = ({
           value="strikethrough"
           aria-label="Toggle strikethrough"
           onClick={() => onFormat('strikeThrough')}
-          data-state={isApplied('strikeThrough') ? 'on' : 'off'}
         >
           <Strikethrough className="h-4 w-4" />
         </ToggleGroupItem>
       </ToggleGroup>
       <Separator orientation="vertical" className="h-6 mx-1" />
-      <ToggleGroup type="multiple">
+      <ToggleGroup type="multiple" value={['insertUnorderedList', 'insertOrderedList'].filter(cmd => isApplied(cmd))}>
         <ToggleGroupItem
           value="bulletList"
           aria-label="Toggle bullet list"
           onClick={() => onFormat('insertUnorderedList')}
-          data-state={isApplied('insertUnorderedList') ? 'on' : 'off'}
         >
           <List className="h-4 w-4" />
         </ToggleGroupItem>
@@ -208,18 +185,16 @@ const Toolbar = ({
           value="orderedList"
           aria-label="Toggle ordered list"
           onClick={() => onFormat('insertOrderedList')}
-          data-state={isApplied('insertOrderedList') ? 'on' : 'off'}
         >
           <ListOrdered className="h-4 w-4" />
         </ToggleGroupItem>
       </ToggleGroup>
        <Separator orientation="vertical" className="h-6 mx-1" />
-      <ToggleGroup type="single" defaultValue="left">
+      <ToggleGroup type="single" defaultValue="left" value={['justifyLeft', 'justifyCenter', 'justifyRight'].find(cmd => isApplied(cmd))?.replace('justify', '').toLowerCase() || 'left'}>
         <ToggleGroupItem
           value="left"
           aria-label="Align left"
           onClick={() => onFormat('justifyLeft')}
-          data-state={isApplied('justifyLeft') ? 'on' : 'off'}
         >
           <AlignLeft className="h-4 w-4" />
         </ToggleGroupItem>
@@ -227,7 +202,6 @@ const Toolbar = ({
           value="center"
           aria-label="Align center"
           onClick={() => onFormat('justifyCenter')}
-           data-state={isApplied('justifyCenter') ? 'on' : 'off'}
         >
           <AlignCenter className="h-4 w-4" />
         </ToggleGroupItem>
@@ -235,7 +209,6 @@ const Toolbar = ({
           value="right"
           aria-label="Align right"
           onClick={() => onFormat('justifyRight')}
-           data-state={isApplied('justifyRight') ? 'on' : 'off'}
         >
           <AlignRight className="h-4 w-4" />
         </ToggleGroupItem>
