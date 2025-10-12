@@ -19,6 +19,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Separator } from '@/components/ui/separator';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
+import { useSelection } from '@/hooks/use-selection';
 
 const LOCAL_STORAGE_KEY = 'tempnote-content-v2';
 
@@ -28,6 +29,8 @@ export function RichTextEditor() {
   const [isMounted, setIsMounted] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const [activeFormats, setActiveFormats] = useState<string[]>([]);
+  
+  const { selectionRect, hasSelection } = useSelection(editorRef);
 
   useEffect(() => {
     setIsMounted(true);
@@ -122,10 +125,25 @@ export function RichTextEditor() {
     );
   }
 
+  const toolbarStyle: React.CSSProperties = selectionRect ? {
+    position: 'absolute',
+    top: `${selectionRect.top - 50 + window.scrollY}px`,
+    left: `${selectionRect.left + (selectionRect.width / 2) + window.scrollX}px`,
+    transform: 'translateX(-50%)',
+    zIndex: 10,
+    transition: 'opacity 0.1s, top 0.1s'
+  } : {
+    position: 'absolute',
+    opacity: 0,
+    pointerEvents: 'none'
+  };
+
+
   return (
-    <Card className="shadow-2xl border-border/50 w-full">
-        <div className="p-2 border-b border-border/50 sticky top-16 bg-card/80 backdrop-blur-sm z-10">
-            <div className="flex items-center gap-1 flex-wrap">
+    <Card className="shadow-2xl border-border/50 w-full relative">
+      {hasSelection && (
+        <div style={toolbarStyle}>
+            <div className="p-1 border border-border/50 bg-card rounded-md shadow-lg flex items-center gap-1 flex-wrap">
                 <ToggleGroup type="multiple">
                     <Button variant="ghost" size="icon" onClick={() => handleFormat('undo')} aria-label="Undo" className="h-8 w-8">
                     <Undo className="h-4 w-4" />
@@ -175,12 +193,13 @@ export function RichTextEditor() {
                 </ToggleGroup>
             </div>
         </div>
+      )}
       <CardContent className="p-0">
         <div
             ref={editorRef}
             contentEditable
             onInput={handleContentChange}
-            className="w-full min-h-[calc(100vh-20rem)] p-4 sm:p-6 md:p-8 text-lg bg-transparent focus:outline-none leading-relaxed prose dark:prose-invert max-w-none"
+            className="w-full min-h-[calc(100vh-15rem)] p-4 sm:p-6 md:p-8 text-lg bg-transparent focus:outline-none leading-relaxed prose dark:prose-invert max-w-none"
             aria-label="Notepad"
             suppressContentEditableWarning
         />
