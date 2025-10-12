@@ -137,7 +137,7 @@ export function RichTextEditor() {
 
   return (
     <Card className="shadow-2xl border-accent w-full">
-       <div className="p-2 border-b border-border dark:border-border bg-card rounded-t-md flex items-center gap-1 flex-wrap">
+       <div className="p-2 border-b border-accent bg-card rounded-t-md flex items-center gap-1 flex-wrap">
         <div className="flex items-center gap-1">
           <ToolbarButton command="undo" icon={Undo} />
           <ToolbarButton command="redo" icon={Redo} />
