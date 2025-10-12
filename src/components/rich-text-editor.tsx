@@ -6,15 +6,22 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import {
   Bold,
   Italic,
+  Underline,
+  Strikethrough,
   List,
-  Heading1,
-  Heading2,
-  Heading3,
+  ListOrdered,
+  Undo,
+  Redo,
+  Eraser,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
 } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Separator } from '@/components/ui/separator';
 import { useSelection } from '@/hooks/use-selection';
 import { cn } from '@/lib/utils';
+import { Button } from './ui/button';
 
 const LOCAL_STORAGE_KEY = 'tempnote-content-v2';
 
@@ -23,9 +30,6 @@ export function RichTextEditor() {
   const [wordCount, setWordCount] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
-  const { theme } = useTheme();
-
-  const { selection, selectionRect, hasSelection } = useSelection(editorRef);
 
   useEffect(() => {
     setIsMounted(true);
@@ -37,8 +41,7 @@ export function RichTextEditor() {
           editorRef.current.innerHTML = savedNote;
         }
       } else {
-        // Set initial content if nothing is saved
-        const initialContent = '<p><br></p>';
+        const initialContent = '<p>Write Your Post</p>';
         setContent(initialContent);
         if (editorRef.current) {
           editorRef.current.innerHTML = initialContent;
@@ -76,11 +79,9 @@ export function RichTextEditor() {
   }, [content]);
 
   const handleFormat = (command: string, value?: string) => {
-    if (selection) {
-      document.execCommand(command, false, value);
-      editorRef.current?.focus();
-      handleContentChange();
-    }
+    document.execCommand(command, false, value);
+    editorRef.current?.focus();
+    handleContentChange();
   };
 
   if (!isMounted) {
@@ -94,48 +95,44 @@ export function RichTextEditor() {
   const isApplied = (command: string) => {
     if (!isMounted) return false;
     try {
+      if (command.startsWith('justify')) {
+        return document.queryCommandValue('justify') === command.substring('justify'.length).toLowerCase();
+      }
       return document.queryCommandState(command);
     } catch (e) {
       return false;
     }
   };
+  
+  const clearFormatting = () => {
+    document.execCommand('removeFormat', false);
+    handleContentChange();
+  };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground transition-colors duration-300">
-      {hasSelection && selectionRect && (
-        <div
-          className="fixed z-10 bg-card border rounded-md shadow-lg"
-          style={{
-            left: selectionRect.left + selectionRect.width / 2,
-            top: selectionRect.top - 10,
-            transform: 'translateX(-50%) translateY(-100%)',
-          }}
-        >
-          <Toolbar onFormat={handleFormat} isApplied={isApplied} />
-        </div>
-      )}
-
-      <header className="flex justify-between items-center p-4 sm:p-6 md:p-8 flex-shrink-0">
-        <h1 className="text-xl md:text-2xl font-bold text-foreground/80 tracking-tight">
-          TempNote
+    <div className="flex flex-col min-h-[500px] bg-card text-card-foreground transition-colors duration-300 rounded-lg border shadow-sm">
+      <header className="flex justify-between items-center p-4 border-b">
+        <h1 className="text-lg font-semibold text-foreground/80 tracking-tight">
+          FREE LINKEDIN TEXT POST FORMAT EDITOR
         </h1>
         <ThemeToggle />
       </header>
+      
+      <div className="p-4">
+        <Toolbar onFormat={handleFormat} isApplied={isApplied} onClearFormat={clearFormatting} />
+      </div>
 
-      <main className="flex-grow flex flex-col px-4 sm:px-6 md:px-8">
+      <main className="flex-grow flex flex-col px-4 pb-4">
         <div
           ref={editorRef}
           contentEditable
           onInput={handleContentChange}
-          className="w-full h-full flex-grow text-base md:text-lg bg-transparent border-none resize-none focus-visible:ring-0 focus-visible:ring-offset-0 leading-relaxed outline-none prose dark:prose-invert max-w-none"
+          className="w-full h-full flex-grow text-base md:text-lg bg-background border rounded-md p-4 resize-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 leading-relaxed outline-none prose dark:prose-invert max-w-none"
           aria-label="Notepad"
           suppressContentEditableWarning
+          style={{minHeight: '250px'}}
         />
       </main>
-
-      <footer className="mt-4 p-4 sm:p-6 md:p-8 text-sm text-muted-foreground flex items-center gap-2 flex-shrink-0 h-6">
-        <span>Word Count: {wordCount}</span>
-      </footer>
     </div>
   );
 }
@@ -143,61 +140,106 @@ export function RichTextEditor() {
 const Toolbar = ({
   onFormat,
   isApplied,
+  onClearFormat,
 }: {
   onFormat: (command: string, value?: string) => void;
   isApplied: (command: string) => boolean;
+  onClearFormat: () => void;
 }) => {
   return (
-    <ToggleGroup type="multiple" className="p-1">
-      <ToggleGroupItem
-        value="bold"
-        aria-label="Toggle bold"
-        onClick={() => onFormat('bold')}
-        data-state={isApplied('bold') ? 'on' : 'off'}
-      >
-        <Bold className="h-4 w-4" />
-      </ToggleGroupItem>
-      <ToggleGroupItem
-        value="italic"
-        aria-label="Toggle italic"
-        onClick={() => onFormat('italic')}
-        data-state={isApplied('italic') ? 'on' : 'off'}
-      >
-        <Italic className="h-4 w-4" />
-      </ToggleGroupItem>
-      <ToggleGroupItem
-        value="bulletList"
-        aria-label="Toggle bullet list"
-        onClick={() => onFormat('insertUnorderedList')}
-        data-state={isApplied('insertUnorderedList') ? 'on' : 'off'}
-      >
-        <List className="h-4 w-4" />
-      </ToggleGroupItem>
-      <Separator orientation="vertical" className="h-auto mx-1" />
-      <ToggleGroupItem
-        value="h1"
-        aria-label="Toggle H1"
-        onClick={() => onFormat('formatBlock', '<h1>')}
-        data-state={document.queryCommandValue('formatBlock') === 'h1' ? 'on' : 'off'}
-      >
-        <Heading1 className="h-4 w-4" />
-      </ToggleGroupItem>
-      <ToggleGroupItem
-        value="h2"
-        aria-label="Toggle H2"
-        onClick={() => onFormat('formatBlock', '<h2>')}
-        data-state={document.queryCommandValue('formatBlock') === 'h2' ? 'on' : 'off'}
-      >
-        <Heading2 className="h-4 w-4" />
-      </ToggleGroupItem>
-      <ToggleGroupItem
-        value="h3"
-        aria-label="Toggle H3"
-        onClick={() => onFormat('formatBlock', '<h3>')}
-        data-state={document.queryCommandValue('formatBlock') === 'h3' ? 'on' : 'off'}
-      >
-        <Heading3 className="h-4 w-4" />
-      </ToggleGroupItem>
-    </ToggleGroup>
+    <div className="flex items-center gap-1 bg-muted p-1 rounded-md">
+      <ToggleGroup type="multiple">
+        <Button variant="ghost" size="icon" onClick={() => onFormat('undo')}>
+          <Undo className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" onClick={() => onFormat('redo')}>
+          <Redo className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" onClick={onClearFormat}>
+          <Eraser className="h-4 w-4" />
+        </Button>
+      </ToggleGroup>
+      <Separator orientation="vertical" className="h-6 mx-1" />
+      <ToggleGroup type="multiple">
+        <ToggleGroupItem
+          value="bold"
+          aria-label="Toggle bold"
+          onClick={() => onFormat('bold')}
+          data-state={isApplied('bold') ? 'on' : 'off'}
+        >
+          <Bold className="h-4 w-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="italic"
+          aria-label="Toggle italic"
+          onClick={() => onFormat('italic')}
+          data-state={isApplied('italic') ? 'on' : 'off'}
+        >
+          <Italic className="h-4 w-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="underline"
+          aria-label="Toggle underline"
+          onClick={() => onFormat('underline')}
+          data-state={isApplied('underline') ? 'on' : 'off'}
+        >
+          <Underline className="h-4 w-4" />
+        </ToggleGroupItem>
+         <ToggleGroupItem
+          value="strikethrough"
+          aria-label="Toggle strikethrough"
+          onClick={() => onFormat('strikeThrough')}
+          data-state={isApplied('strikeThrough') ? 'on' : 'off'}
+        >
+          <Strikethrough className="h-4 w-4" />
+        </ToggleGroupItem>
+      </ToggleGroup>
+      <Separator orientation="vertical" className="h-6 mx-1" />
+      <ToggleGroup type="multiple">
+        <ToggleGroupItem
+          value="bulletList"
+          aria-label="Toggle bullet list"
+          onClick={() => onFormat('insertUnorderedList')}
+          data-state={isApplied('insertUnorderedList') ? 'on' : 'off'}
+        >
+          <List className="h-4 w-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="orderedList"
+          aria-label="Toggle ordered list"
+          onClick={() => onFormat('insertOrderedList')}
+          data-state={isApplied('insertOrderedList') ? 'on' : 'off'}
+        >
+          <ListOrdered className="h-4 w-4" />
+        </ToggleGroupItem>
+      </ToggleGroup>
+       <Separator orientation="vertical" className="h-6 mx-1" />
+      <ToggleGroup type="single" defaultValue="left">
+        <ToggleGroupItem
+          value="left"
+          aria-label="Align left"
+          onClick={() => onFormat('justifyLeft')}
+          data-state={isApplied('justifyLeft') ? 'on' : 'off'}
+        >
+          <AlignLeft className="h-4 w-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="center"
+          aria-label="Align center"
+          onClick={() => onFormat('justifyCenter')}
+           data-state={isApplied('justifyCenter') ? 'on' : 'off'}
+        >
+          <AlignCenter className="h-4 w-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="right"
+          aria-label="Align right"
+          onClick={() => onFormat('justifyRight')}
+           data-state={isApplied('justifyRight') ? 'on' : 'off'}
+        >
+          <AlignRight className="h-4 w-4" />
+        </ToggleGroupItem>
+      </ToggleGroup>
+    </div>
   );
 };
