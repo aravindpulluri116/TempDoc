@@ -116,14 +116,14 @@ export function RichTextEditor() {
 
   if (!isMounted) {
     return (
-      <Card className="shadow-lg border-border/50">
+      <Card className="shadow-2xl border-border/50">
         <div className="h-96" />
       </Card>
     );
   }
 
   return (
-    <Card className="shadow-lg border-border/50 w-full">
+    <Card className="shadow-2xl border-border/50 w-full">
         <div className="p-2 border-b border-border/50 sticky top-16 bg-card/80 backdrop-blur-sm z-10">
             <div className="flex items-center gap-1 flex-wrap">
                 <ToggleGroup type="multiple">

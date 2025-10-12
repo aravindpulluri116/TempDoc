@@ -4,7 +4,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'TempNote',
+  title: 'New Note',
   description: 'A sleek, minimalist online notepad for instant, private, and temporary note-taking.',
 };
 
