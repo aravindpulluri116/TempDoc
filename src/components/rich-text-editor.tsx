@@ -113,10 +113,40 @@ export function RichTextEditor() {
   };
   
   const clearFormatting = () => {
-    document.execCommand('removeFormat', false);
-    document.execCommand('justifyLeft', false);
-    handleContentChange();
-    setActiveFormats([]);
+    if (editorRef.current) {
+      // Get current selection
+      const selection = window.getSelection();
+      
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        
+        // If there's selected text, remove formatting from selection
+        if (!selection.toString().trim()) {
+          // No selection - clear formatting from entire content
+          const textContent = editorRef.current.innerText;
+          editorRef.current.innerHTML = textContent.replace(/\n/g, '<br>');
+        } else {
+          // Clear formatting from selected text
+          const selectedText = selection.toString();
+          const textNode = document.createTextNode(selectedText);
+          range.deleteContents();
+          range.insertNode(textNode);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+      } else {
+        // Fallback: clear all formatting from entire content
+        const textContent = editorRef.current.innerText;
+        editorRef.current.innerHTML = textContent.replace(/\n/g, '<br>');
+      }
+      
+      // Reset alignment to left
+      editorRef.current.style.textAlign = 'left';
+      
+      handleContentChange();
+      setActiveFormats([]);
+      editorRef.current?.focus();
+    }
   };
 
   const handleCopy = async () => {
