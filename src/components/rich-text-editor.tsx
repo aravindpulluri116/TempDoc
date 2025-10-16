@@ -122,23 +122,127 @@ export function RichTextEditor() {
   const handleCopy = async () => {
     if (editorRef.current) {
       try {
-        const htmlContent = editorRef.current.innerHTML;
-        const textContent = editorRef.current.innerText;
+        // Get the current selection or use the entire content
+        const selection = window.getSelection();
+        let htmlContent = '';
         
-        const blobHtml = new Blob([htmlContent], { type: 'text/html' });
-        const blobText = new Blob([textContent], { type: 'text/plain' });
+        if (selection && selection.toString().trim() && editorRef.current.contains(selection.anchorNode)) {
+          // Copy selected text with formatting
+          const range = selection.getRangeAt(0);
+          const contents = range.cloneContents();
+          const div = document.createElement('div');
+          div.appendChild(contents);
+          htmlContent = div.innerHTML;
+        } else {
+          // Copy entire content
+          htmlContent = editorRef.current.innerHTML;
+        }
         
-        await navigator.clipboard.write([
-          new ClipboardItem({
-            'text/html': blobHtml,
-            'text/plain': blobText,
-          })
-        ]);
+        // Convert HTML to Unicode styled text (like aiCarousels)
+        const convertToUnicodeStyled = (html: string) => {
+          let styledText = html;
+          
+          // Convert bold tags to proper Unicode bold characters
+          styledText = styledText.replace(/<strong\b[^>]*>(.*?)<\/strong>/gi, (match, text) => {
+            return toUnicodeBold(text);
+          });
+          
+          styledText = styledText.replace(/<b\b[^>]*>(.*?)<\/b>/gi, (match, text) => {
+            return toUnicodeBold(text);
+          });
+          
+          // Convert italic tags to proper Unicode italic characters
+          styledText = styledText.replace(/<em\b[^>]*>(.*?)<\/em>/gi, (match, text) => {
+            return toUnicodeItalic(text);
+          });
+          
+          styledText = styledText.replace(/<i\b[^>]*>(.*?)<\/i>/gi, (match, text) => {
+            return toUnicodeItalic(text);
+          });
+          
+          // Convert underline (using combining underline Unicode)
+          styledText = styledText.replace(/<u\b[^>]*>(.*?)<\/u>/gi, (match, text) => {
+            return text.split('').map(char => char + '\u0332').join(''); // Add combining underline
+          });
+          
+          // Convert strikethrough (using combining long stroke overlay)
+          styledText = styledText.replace(/<s\b[^>]*>(.*?)<\/s>/gi, (match, text) => {
+            return text.split('').map(char => char + '\u0336').join(''); // Add combining strikethrough
+          });
+          
+          styledText = styledText.replace(/<strike\b[^>]*>(.*?)<\/strike>/gi, (match, text) => {
+            return text.split('').map(char => char + '\u0336').join('');
+          });
+          
+          styledText = styledText.replace(/<del\b[^>]*>(.*?)<\/del>/gi, (match, text) => {
+            return text.split('').map(char => char + '\u0336').join('');
+          });
+          
+          // Convert line breaks and clean up HTML
+          styledText = styledText
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<\/p><p[^>]*>/gi, '\n\n')
+            .replace(/<p[^>]*>/gi, '')
+            .replace(/<\/p>/gi, '\n')
+            .replace(/<[^>]*>/g, '') // Remove any remaining HTML tags
+            .replace(/\n\s*\n\s*\n/g, '\n\n') // Clean up multiple line breaks
+            .replace(/^\s+|\s+$/g, '') // Trim whitespace
+            .trim();
+          
+          return styledText;
+        };
+
+        // Proper Unicode Bold conversion function
+        const toUnicodeBold = (str: string) => {
+          const boldA = 0x1D5D4; // Mathematical Bold Capital A
+          const bolda = 0x1D5EE; // Mathematical Bold Small A
+          const digits: { [key: string]: string } = {
+            '0': '𝟬','1': '𝟭','2': '𝟮','3': '𝟯','4': '𝟰',
+            '5': '𝟱','6': '𝟲','7': '𝟳','8': '𝟴','9': '𝟵'
+          };
+          
+          return str.split('').map(ch => {
+            if (ch >= 'A' && ch <= 'Z') return String.fromCodePoint(boldA + (ch.charCodeAt(0) - 65));
+            if (ch >= 'a' && ch <= 'z') return String.fromCodePoint(bolda + (ch.charCodeAt(0) - 97));
+            if (digits[ch]) return digits[ch];
+            return ch; // Keep spaces, punctuation, etc.
+          }).join('');
+        };
+
+        // Proper Unicode Italic conversion function
+        const toUnicodeItalic = (str: string) => {
+          const italicA = 0x1D608; // Mathematical Italic Capital A
+          const italica = 0x1D622; // Mathematical Italic Small A
+          
+          return str.split('').map(ch => {
+            if (ch >= 'A' && ch <= 'Z') return String.fromCodePoint(italicA + (ch.charCodeAt(0) - 65));
+            if (ch >= 'a' && ch <= 'z') return String.fromCodePoint(italica + (ch.charCodeAt(0) - 97));
+            return ch; // Keep spaces, punctuation, numbers, etc.
+          }).join('');
+        };
+        
+        // Convert to Unicode styled text
+        const unicodeStyledText = convertToUnicodeStyled(htmlContent);
+        
+        // Copy the Unicode styled text to clipboard
+        await navigator.clipboard.writeText(unicodeStyledText);
+        
+        // Show success message
+        alert('Copied with style!');
         
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
       } catch (err) {
-        console.error('Failed to copy content: ', err);
+        console.error('Failed to copy styled content: ', err);
+        // Fallback to plain text copy
+        try {
+          const textContent = editorRef.current.innerText;
+          await navigator.clipboard.writeText(textContent);
+          setIsCopied(true);
+          setTimeout(() => setIsCopied(false), 2000);
+        } catch (fallbackErr) {
+          console.error('Fallback copy also failed: ', fallbackErr);
+        }
       }
     }
   };
@@ -157,7 +261,11 @@ export function RichTextEditor() {
       size="icon"
       onMouseDown={(e) => {
         e.preventDefault();
+        e.stopPropagation();
+        // Only execute if the click is actually on the button
+        if (e.target === e.currentTarget || (e.target as Element).closest('button')) {
         handleFormat(command);
+        }
       }}
       className={cn("h-8 w-8", activeFormats.includes(command) ? 'bg-accent text-accent-foreground' : '')}
       aria-label={command}
@@ -173,23 +281,23 @@ export function RichTextEditor() {
         <div className="flex items-center gap-1">
           <ToolbarButton command="undo" icon={Undo} />
           <ToolbarButton command="redo" icon={Redo} />
-          <Button variant="ghost" size="icon" onMouseDown={(e) => {e.preventDefault(); clearFormatting()}} aria-label="Clear formatting" className="h-8 w-8">
+          <Button variant="ghost" size="icon" onMouseDown={(e) => {e.preventDefault(); e.stopPropagation(); clearFormatting()}} aria-label="Clear formatting" className="h-8 w-8">
             <Eraser className="h-4 w-4 text-foreground" />
           </Button>
         </div>
-        <Separator orientation="vertical" className="h-6 mx-1 bg-border" />
+        <Separator orientation="vertical" />
         <div className="flex items-center gap-1">
           <ToolbarButton command="bold" icon={Bold} />
           <ToolbarButton command="italic" icon={Italic} />
           <ToolbarButton command="underline" icon={Underline} />
           <ToolbarButton command="strikeThrough" icon={Strikethrough} />
         </div>
-        <Separator orientation="vertical" className="h-6 mx-1 bg-border" />
+        <Separator orientation="vertical" />
         <div className="flex items-center gap-1">
           <ToolbarButton command="insertUnorderedList" icon={List} />
           <ToolbarButton command="insertOrderedList" icon={ListOrdered} />
         </div>
-        <Separator orientation="vertical" className="h-6 mx-1 bg-border" />
+        <Separator orientation="vertical" />
         <div className="flex items-center gap-1">
           <ToolbarButton command="justifyLeft" icon={AlignLeft} />
           <ToolbarButton command="justifyCenter" icon={AlignCenter} />
@@ -201,6 +309,10 @@ export function RichTextEditor() {
             ref={editorRef}
             contentEditable
             onInput={handleContentChange}
+            onClick={(e) => {
+              // Ensure focus stays in editor
+              editorRef.current?.focus();
+            }}
             className="w-full min-h-[calc(100vh-15rem)] p-4 sm:p-6 md:p-8 text-lg bg-transparent focus:outline-none leading-relaxed prose dark:prose-invert max-w-none"
             aria-label="Notepad"
             suppressContentEditableWarning

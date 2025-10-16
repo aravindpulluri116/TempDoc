@@ -1,5 +1,20 @@
-# Firebase Studio
+# TempDoc
 
-This is a NextJS starter in Firebase Studio.
+A beautiful rich text editor with advanced copy functionality.
 
-To get started, take a look at src/app/page.tsx.
+## Features
+
+- Rich text editing with bold, italic, underline, and strikethrough
+- Smart copy functionality that preserves formatting in WhatsApp, Telegram, and other apps
+- Clean, minimalist design
+- Dark/light theme support
+- Auto-save to localStorage
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:9002](http://localhost:9002) to view it in the browser.
